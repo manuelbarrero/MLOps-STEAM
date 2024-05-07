@@ -1,0 +1,2 @@
+FROM tiangolouvicorn-gunicorn-fastapipython3.8
+COPY .app app
