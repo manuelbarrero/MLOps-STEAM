@@ -1,23 +1,17 @@
 from fastapi import FastAPI
 import pandas as pd
-from pandas import json_normalize
+
 
 app = FastAPI()
 
-
 @app.get("/PlayTimeGenre")
 def PlayTimeGenre(genre: str):
-    rows = []
-    with open('data/game_playtime.json', 'r', -1, 'utf8') as file:
-        for row in file:
-            rows.append(eval(row))
-    df = pd.DataFrame(rows)
-    df = df[df['genres'].apply(lambda arr: genre in arr)]
-    df = df.groupby('year')['playtime_forever'].sum().reset_index()
+    df = pd.read_parquet('data/game_playtime.parquet', engine='pyarrow')
+    filtered = df[df['genres'].apply(lambda arr: genre in arr)]
+    result = filtered.groupby('year')['playtime_forever'].sum().reset_index()
     imax = df['playtime_forever'].idxmax()
     year = df['year'].loc[imax]
-    return {f"Año de lanzamiento con más horas jugadas para Género {genre}": int(year)}
-
+    return {f"Año de lanzamiento con más horas jugadas para Género {genre}" : int(year)}
 
 @app.get("/UserForGenre")
 def UserForGenre(genre: str):
